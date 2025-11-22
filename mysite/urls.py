@@ -25,7 +25,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('shop/', include('shopapp.urls')),
     path('myauth/', include('myauth.urls')),
-    path('blog/', include('blogapp.urls')),
 
     path(
         "sitemap.xml",
