@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
+from django.urls import reverse_lazy  
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +22,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-hvxn%qq=gyw^4*o2lo1#b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-
+# Для работы статики в production (как требуется в задании)
 DJANGO_DEBUG = config('DJANGO_DEBUG', default='0') == '1'
 if DJANGO_DEBUG:
     DEBUG = True
@@ -60,9 +61,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # "django.middleware.cache.UpdateCacheMiddleware",
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Добавлено для production
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,7 +70,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-    # "django.middleware.cache.FetchFromCacheMiddleware",
 ]
 
 # Настройки WhiteNoise для статических файлов
@@ -97,9 +96,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
-
 DATABASE_URL = config('DATABASE_URL', default=None)
 if DATABASE_URL:
     DATABASES = {
@@ -113,20 +109,7 @@ else:
         }
     }
 
-if config('POSTGRES_DB', default=None):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('POSTGRES_DB', default='shopdb'),
-            'USER': config('POSTGRES_USER', default='shopuser'),
-            'PASSWORD': config('POSTGRES_PASSWORD', default='password'),
-            'HOST': config('POSTGRES_HOST', default='localhost'),
-            'PORT': config('POSTGRES_PORT', default='5432'),
-        }
-    }
-
-
-
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -142,63 +125,23 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Cache settings
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
-    }
-}
-
-if DEBUG and not config('REDIS_URL', default=None):
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-        }
-    }
-
-CACHE_MIDDLEWARE_SECONDS = 200
-
-# REST Framework
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-    ],
-}
-
-if not DEBUG:
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
-        'rest_framework.renderers.JSONRenderer',
-    ]
-
 # Internationalization
-# https://docs.djangoproject.com/en/4.0/topics/i18n/
-
 LANGUAGE_CODE = config('LANGUAGE_CODE', default='en-us')
-
 TIME_ZONE = config('TIME_ZONE', default='UTC')
-
 USE_I18N = True
-
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
-
+# Static files
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Для collectstatic
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'uploads'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Authentication URLs - ИСПРАВЛЕННЫЕ СТРОКИ
 LOGIN_REDIRECT_URL = reverse_lazy("myauth:about-me")
 LOGIN_URL = reverse_lazy("myauth:login")
 
@@ -209,44 +152,10 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
 
-# Logging configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': config('DJANGO_LOG_LEVEL', default='INFO'),
-            'propagate': False,
-        },
-    },
+# REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
-
-# Debug Toolbar settings
-if DEBUG:
-    DEBUG_TOOLBAR_CONFIG = {
-        'SHOW_TOOLBAR_CALLBACK': lambda request: True,
-    }
-else:
-    INSTALLED_APPS = [app for app in INSTALLED_APPS if app != 'debug_toolbar']
-    MIDDLEWARE = [mw for mw in MIDDLEWARE if mw != 'debug_toolbar.middleware.DebugToolbarMiddleware']
