@@ -1,34 +1,51 @@
 {% extends 'shopapp/base.html' %}
 
 {% block title %}
-  Products list
+  Products List
 {% endblock %}
 
 {% block body %}
-  <h1>Products:</h1>
-  {% if products %}
-    <div>
-    {% for product in products %}
-      <div>
-        <p><a href="{% url 'shopapp:product_details' pk=product.pk %}"
-        >Name: {{ product.name }}</a></p>
-        <p>Price: {{ product.price }}</p>
-        <p>Discount: {% firstof product.discount 'no discount' %}</p>
-
-        {% if product.preview %}
-          <img src="{{ product.preview.url }}" alt="{{ product.preview.name }}">
-        {% endif %}
-      </div>
-    {% endfor %}
-
-    </div>
-
-  {% else %}
-    <h3>No products yet</h3>
-  {% endif %}
-
-  <div>
-    <a href="{% url 'shopapp:product_create' %}"
-      >Create a new product</a>
+  <div class="text-center mb-2">
+    <h1>Our Products</h1>
+    <p class="mb-2">Discover our amazing collection of products</p>
+    <a href="{% url 'shopapp:product_create' %}" class="btn">➕ Create New Product</a>
   </div>
+
+  {% if products %}
+    <div class="product-grid">
+      {% for product in products %}
+        <div class="product-card">
+          {% if product.preview %}
+            <img src="{{ product.preview.url }}" alt="{{ product.preview.name }}" class="product-image">
+          {% else %}
+            <div class="product-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;">
+              No Image
+            </div>
+          {% endif %}
+          
+          <h3>{{ product.name }}</h3>
+          <div style="margin-bottom: 1rem;">
+            <strong>${{ product.price }}</strong>
+            {% if product.discount %}
+              <span style="color: #e74c3c; margin-left: 0.5rem;">
+                -{{ product.discount }}% OFF!
+              </span>
+            {% endif %}
+          </div>
+          
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="{% url 'shopapp:product_details' pk=product.pk %}" class="btn" style="flex: 1;">
+              View Details
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center mt-2">
+      <h3>No products available yet</h3>
+      <p>Be the first to create a product!</p>
+      <a href="{% url 'shopapp:product_create' %}" class="btn">Create First Product</a>
+    </div>
+  {% endif %}
 {% endblock %}

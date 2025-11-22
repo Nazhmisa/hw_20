@@ -1,20 +1,70 @@
 {% extends 'shopapp/base.html' %}
 
 {% block title %}
-  Create product
+  {% if object %}Update{% else %}Create{% endif %} Product
 {% endblock %}
 
 {% block body %}
-  <h1>Create product</h1>
-  <div>
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Create</button>
-    </form>
-  </div>
-  <div>
-    <a href="{% url 'shopapp:products_list' %}"
-    >Back to products list</a>
+  <div style="max-width: 600px; margin: 0 auto;">
+    <div class="text-center mb-2">
+      <h1>
+        {% if object %}
+          ✏️ Update Product
+        {% else %}
+          🆕 Create New Product
+        {% endif %}
+      </h1>
+      <p class="mb-2">
+        {% if object %}
+          Make changes to "{{ object.name }}"
+        {% else %}
+          Add a new product to your store
+        {% endif %}
+      </p>
+    </div>
+
+    <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        {% for field in form %}
+          <div class="form-group">
+            <label for="{{ field.id_for_label }}">
+              {% if field.name == 'name' %}📝{% endif %}
+              {% if field.name == 'price' %}💰{% endif %}
+              {% if field.name == 'description' %}📄{% endif %}
+              {% if field.name == 'discount' %}🎯{% endif %}
+              {% if field.name == 'preview' %}🖼️{% endif %}
+              {{ field.label }}
+            </label>
+            {{ field }}
+            {% if field.help_text %}
+              <div style="font-size: 0.8rem; color: #666; margin-top: 0.25rem;">
+                💡 {{ field.help_text }}
+              </div>
+            {% endif %}
+            {% if field.errors %}
+              <div style="color: #e74c3c; font-size: 0.8rem; margin-top: 0.25rem;">
+                ❌ {{ field.errors }}
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button type="submit" class="btn" style="flex: 1;">
+            {% if object %}
+              ✅ Update Product
+            {% else %}
+              🚀 Create Product
+            {% endif %}
+          </button>
+          <a href="{% if object %}{% url 'shopapp:product_details' pk=object.pk %}{% else %}{% url 'shopapp:products_list' %}{% endif %}" 
+             class="btn" style="background: #6c757d;">
+            ↩️ Cancel
+          </a>
+        </div>
+      </form>
+    </div>
   </div>
 {% endblock %}

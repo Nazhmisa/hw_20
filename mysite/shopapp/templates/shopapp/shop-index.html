@@ -3,35 +3,77 @@
 {% load cache %}
 
 {% block title %}
-  Shop Index
+  Welcome to Django Shop
 {% endblock %}
 
-
 {% block body %}
-  <h1>Hello Shop Index!</h1>
-
-  <div>
-    <ul>
-      {% for name, price in products %}
-        <li>{{ name }} ({{ name|length }}) for ${{ price }}</li>
-        {% if name|length_is:'7' %}
-          <span>Lucky product!</span>
-        {% endif %}
-      {% empty %}
-        No products here
-      {% endfor %}
-
-    </ul>
+  <div class="text-center mb-2">
+    <h1>🎉 Welcome to Django Shop!</h1>
+    <p class="mb-2" style="font-size: 1.2rem; color: #666;">
+      Your one-stop destination for amazing products
+    </p>
   </div>
 
-  <div>
-    Time running: {{ time_running }}
+  <div class="product-grid">
+    {% for name, price in products %}
+      <div class="product-card">
+        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem;">
+          🛍️
+        </div>
+        <h3 style="text-align: center;">{{ name }}</h3>
+        <div style="text-align: center; font-size: 1.5rem; font-weight: bold; color: #2c3e50;">
+          ${{ price }}
+        </div>
+        {% if name|length_is:'7' %}
+          <div style="text-align: center; margin-top: 0.5rem;">
+            <span style="background: #ffd700; color: #000; padding: 0.2rem 0.5rem; border-radius: 15px; font-size: 0.8rem;">
+              🎯 Lucky Product!
+            </span>
+          </div>
+        {% endif %}
+      </div>
+    {% empty %}
+      <div class="text-center" style="grid-column: 1 / -1;">
+        <h3>No featured products yet</h3>
+        <p>Check back later for amazing deals!</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div style="background: white; padding: 2rem; border-radius: 10px; margin: 2rem 0; text-align: center;">
+    <h2>⏰ Special Offer!</h2>
+    <p style="font-size: 1.1rem; margin: 1rem 0;">
+      Server running for: <strong>{{ time_running }}</strong>
+    </p>
+    <p style="color: #666;">Every second counts when you're getting great deals!</p>
   </div>
 
   {% cache 100 lorem %}
-    <div>
-      {% lorem 3 p random %}
+    <div style="background: #f8f9fa; padding: 2rem; border-radius: 10px; border-left: 4px solid #667eea;">
+      <h3>📖 About Our Store</h3>
+      <div style="color: #555; line-height: 1.8;">
+        {% lorem 3 p random %}
+      </div>
     </div>
   {% endcache %}
 
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 3rem;">
+    <div style="text-align: center; padding: 2rem; background: white; border-radius: 10px;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🚚</div>
+      <h3>Fast Delivery</h3>
+      <p>Quick and reliable shipping to your doorstep</p>
+    </div>
+    
+    <div style="text-align: center; padding: 2rem; background: white; border-radius: 10px;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">💳</div>
+      <h3>Secure Payment</h3>
+      <p>Your transactions are safe with us</p>
+    </div>
+    
+    <div style="text-align: center; padding: 2rem; background: white; border-radius: 10px;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">⭐</div>
+      <h3>Quality Products</h3>
+      <p>Curated selection of premium items</p>
+    </div>
+  </div>
 {% endblock %}

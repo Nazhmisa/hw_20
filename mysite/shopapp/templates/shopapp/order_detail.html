@@ -1,27 +1,80 @@
 {% extends 'shopapp/base.html' %}
 
 {% block title %}
-  Order #{{ object.pk }} details
+  Order #{{ object.pk }} - Details
 {% endblock %}
 
 {% block body %}
-  <h1>Order #{{ object.pk }}</h1>
-  <div>
-    <p>Order by {% firstof object.user.first_name object.user.username %}</p>
-    <p>Promocode: <code>{{ object.promocode }}</code></p>
-    <p>Delivery address: {{ object.delivery_address }}</p>
-    <div>
-      Product in order:
-      <ul>
-        {% for product in object.products.all %}
-          <li>{{ product.name }} for ${{ product.price }}</li>
-        {% endfor %}
+  <div style="max-width: 800px; margin: 0 auto;">
+    <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+        <div>
+          <h1>📦 Order #{{ object.pk }}</h1>
+          <p style="color: #666; font-size: 1.1rem;">
+            Placed by <strong>{% firstof object.user.first_name object.user.username %}</strong>
+          </p>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 2rem;">✅</div>
+          <div style="color: #27ae60; font-weight: bold;">Active</div>
+        </div>
+      </div>
 
-      </ul>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+          <h3 style="margin-bottom: 1rem;">🏷️ Promo Code</h3>
+          {% if object.promocode %}
+            <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">
+              {{ object.promocode }}
+            </div>
+          {% else %}
+            <div style="color: #999;">No promo code used</div>
+          {% endif %}
+        </div>
+
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+          <h3 style="margin-bottom: 1rem;">📍 Delivery Address</h3>
+          <p style="color: #555; line-height: 1.5;">{{ object.delivery_address }}</p>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="margin-bottom: 1rem;">🛍️ Products in Order</h3>
+        <div style="background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+          {% for product in object.products.all %}
+            {% if forloop.last %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: none;">
+            {% else %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #eee;">
+            {% endif %}
+              <div>
+                <strong>{{ product.name }}</strong>
+                {% if product.discount %}
+                  <span style="color: #e74c3c; margin-left: 0.5rem;">
+                    ({{ product.discount }}% off)
+                  </span>
+                {% endif %}
+              </div>
+              <div style="font-weight: bold; color: #2c3e50;">
+                ${{ product.price }}
+              </div>
+            </div>
+          {% endfor %}
+          
+          {% if object.products.all %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; background: #f8f9fa; font-weight: bold;">
+              <div>Total Items:</div>
+              <div>{{ object.products.count }}</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div>
-    <a href="{% url 'shopapp:orders_list' %}">Back to orders</a>
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="{% url 'shopapp:orders_list' %}" class="btn">
+        ← Back to Orders List
+      </a>
+    </div>
   </div>
 {% endblock %}

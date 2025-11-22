@@ -1,35 +1,68 @@
 {% extends 'shopapp/base.html' %}
 
 {% block title %}
-  Orders list
+  Orders List
 {% endblock %}
 
 {% block body %}
-  <h1>Orders:</h1>
-  {% if object_list %}
-    <div>
-      {% for order in object_list %}
-        <div>
-          <p><a href="{% url 'shopapp:order_details' pk=order.pk %}"
-          >Details #{{ order.pk }}</a></p>
-          <p>Order by {% firstof order.user.first_name order.user.username %}</p>
-          <p>Promocode: <code>{{ order.promocode }}</code></p>
-          <p>Delivery address: {{ order.delivery_address }}</p>
-          <div>
-            Product in order:
-            <ul>
-              {% for product in order.products.all %}
-                <li>{{ product.name }} for ${{ product.price }}</li>
-              {% endfor %}
+  <div class="text-center mb-2">
+    <h1>📦 Orders Management</h1>
+    <p class="mb-2">Track and manage all customer orders</p>
+  </div>
 
-            </ul>
+  {% if object_list %}
+    <div class="product-grid">
+      {% for order in object_list %}
+        <div class="product-card">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+            <div>
+              <h3>Order #{{ order.pk }}</h3>
+              <p style="color: #666; margin: 0.5rem 0;">
+                👤 {% firstof order.user.first_name order.user.username %}
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <a href="{% url 'shopapp:order_details' pk=order.pk %}" class="btn">
+                View Details
+              </a>
+            </div>
           </div>
 
+          {% if order.promocode %}
+            <div style="background: #e8f5e8; padding: 0.5rem; border-radius: 5px; margin-bottom: 1rem;">
+              🏷️ Promo: <code>{{ order.promocode }}</code>
+            </div>
+          {% endif %}
+
+          <div style="margin-bottom: 1rem;">
+            <strong>📍 Delivery:</strong>
+            <p style="color: #666; margin: 0.5rem 0;">{{ order.delivery_address }}</p>
+          </div>
+
+          <div>
+            <strong>🛍️ Products ({{ order.products.count }}):</strong>
+            <ul style="margin-top: 0.5rem;">
+              {% for product in order.products.all %}
+                <li style="display: flex; justify-content: space-between; padding: 0.2rem 0;">
+                  <span>{{ product.name }}</span>
+                  <span style="font-weight: bold;">${{ product.price }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
       {% endfor %}
-
     </div>
   {% else %}
-    <h3>No orders yet</h3>
+    <div class="text-center" style="background: white; padding: 3rem; border-radius: 10px;">
+      <div style="font-size: 4rem; margin-bottom: 1rem;">📭</div>
+      <h3>No Orders Yet</h3>
+      <p style="color: #666; margin: 1rem 0;">
+        Orders will appear here once customers start shopping
+      </p>
+      <a href="{% url 'shopapp:products_list' %}" class="btn">
+        Browse Products
+      </a>
+    </div>
   {% endif %}
 {% endblock %}

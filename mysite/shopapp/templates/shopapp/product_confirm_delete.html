@@ -1,22 +1,40 @@
 {% extends 'shopapp/base.html' %}
 
 {% block title %}
-  Confirm archive {{ object.name }}
+  Archive {{ object.name }}
 {% endblock %}
 
 {% block body %}
-  <h1>Are you sure you want to archive {{ object.name }}?</h1>
-  <br>
-  <div>
-    <a href="{% url 'shopapp:product_details' pk=object.pk %}"
-    >Back to product</a>
-  </div>
-  <br>
-  <div>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Archive</button>
-    </form>
+  <div style="max-width: 500px; margin: 0 auto; text-align: center;">
+    <div style="background: white; padding: 3rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+      <h1>Archive Product</h1>
+      
+      <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 1.5rem; margin: 2rem 0;">
+        <h3 style="color: #856404; margin-bottom: 1rem;">"{{ object.name }}"</h3>
+        <p style="color: #856404; margin: 0;">
+          Are you sure you want to archive this product?<br>
+          Archived products will be hidden from the main product list.
+        </p>
+      </div>
+
+      <form method="post" style="margin-bottom: 2rem;">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+          <button type="submit" class="btn btn-danger">
+            🗑️ Yes, Archive
+          </button>
+          <a href="{% url 'shopapp:product_details' pk=object.pk %}" class="btn">
+            ↩️ Cancel
+          </a>
+        </div>
+      </form>
+
+      <div style="border-top: 1px solid #eee; padding-top: 1rem;">
+        <a href="{% url 'shopapp:products_list' %}" style="color: #666; text-decoration: none;">
+          ← Back to Products List
+        </a>
+      </div>
+    </div>
   </div>
 {% endblock %}

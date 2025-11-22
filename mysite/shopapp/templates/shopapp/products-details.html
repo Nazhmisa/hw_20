@@ -1,41 +1,65 @@
 {% extends 'shopapp/base.html' %}
 
 {% block title %}
-  Product #{{ product.pk }}
+  {{ product.name }} - Details
 {% endblock %}
 
 {% block body %}
-  <h1>Product <strong>{{ product.name }}</strong></h1>
-  <div>
-    <div>Description: <em>{{ product.description }}</em></div>
-    <div>Price: {{ product.price }}</div>
-    <div>Discount: {{ product.discount }}</div>
-    <div>Archived: {{ product.archived }}</div>
+  <div style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+      <div>
+        <h1>{{ product.name }}</h1>
+        <p style="color: #666; font-size: 1.2rem;">{{ product.description }}</p>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 2rem; font-weight: bold; color: #2c3e50;">
+          ${{ product.price }}
+        </div>
+        {% if product.discount %}
+          <div style="color: #e74c3c; font-weight: bold;">
+            {{ product.discount }}% Discount!
+          </div>
+        {% endif %}
+        <div style="color: #7f8c8d; margin-top: 0.5rem;">
+          {% if product.archived %}
+            <span style="color: #e74c3c;">⛔ Archived</span>
+          {% else %}
+            <span style="color: #27ae60;">✅ Available</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
 
     {% if product.preview %}
-      <img src="{{ product.preview.url }}" alt="{{ product.preview.name }}">
+      <div style="margin-bottom: 2rem;">
+        <img src="{{ product.preview.url }}" alt="{{ product.preview.name }}" 
+             style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 10px;">
+      </div>
     {% endif %}
 
-    <h3>Images:</h3>
-    <div>
-      {% for img in product.images.all %}
-        <div>
-          <img src="{{ img.image.url }}" alt="{{ img.image.name }}">
-          <div>{{ img.description }}</div>
-        </div>
-      {% empty %}
-        <div>No images uploaded yet</div>
-      {% endfor %}
-
+    <div class="product-images" style="margin-bottom: 2rem;">
+      <h3>Product Gallery</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        {% for img in product.images.all %}
+          <div style="text-align: center;">
+            <img src="{{ img.image.url }}" alt="{{ img.image.name }}" 
+                 style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px;">
+            {% if img.description %}
+              <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">{{ img.description }}</p>
+            {% endif %}
+          </div>
+        {% empty %}
+          <div style="text-align: center; color: #999; padding: 2rem;">
+            No additional images available
+          </div>
+        {% endfor %}
+      </div>
     </div>
-  </div>
-  <div>
-    <a href="{% url 'shopapp:product_update' pk=product.pk %}">Update product</a>
-  </div>
-  <div>
-    <a href="{% url 'shopapp:product_delete' pk=product.pk %}">Archive product</a>
-  </div>
-  <div>
-    <a href="{% url 'shopapp:products_list' %}">Back to products list</a>
+
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; padding-top: 2rem; border-top: 1px solid #eee;">
+      <a href="{% url 'shopapp:product_update' pk=product.pk %}" class="btn">✏️ Edit Product</a>
+      <a href="{% url 'shopapp:product_delete' pk=product.pk %}" class="btn btn-danger">🗑️ Archive Product</a>
+      <a href="{% url 'shopapp:products_list' %}" class="btn">← Back to Products</a>
+    </div>
   </div>
 {% endblock %}

@@ -1,40 +1,85 @@
 {% extends 'shopapp/base.html' %}
 
 {% block title %}
-  Groups List
+  User Groups
 {% endblock %}
 
 {% block body %}
-  <h1>Groups:</h1>
-  <div>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Create</button>
-    </form>
-  </div>
-  <div>
-  {% if not groups %}
-    <h3>No groups yet</h3>
-  {% else %}
-    <ul>
+  <div style="max-width: 1000px; margin: 0 auto;">
+    <div class="text-center mb-2">
+      <h1>👥 User Groups Management</h1>
+      <p class="mb-2">Manage user permissions and access levels</p>
+    </div>
 
-      {% for group in groups %}
-          <li>
-            <div>{{ group.name }}</div>
-            <ul>
-              {% for permission in group.permissions.all %}
-                <li>
-                  {{ permission.name }}
-                  (<code>{{ permission.codename }}</code>)
-                </li>
-              {% endfor %}
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 3rem;">
+      <!-- Форма создания группы -->
+      <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h3 style="margin-bottom: 1.5rem;">➕ Create New Group</h3>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="form-group">
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div style="color: #e74c3c; font-size: 0.8rem; margin-top: 0.25rem;">
+                  {{ field.errors }}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">
+            🚀 Create Group
+          </button>
+        </form>
+      </div>
 
-            </ul>
-          </li>
-      {% endfor %}
-
-    </ul>
-  {% endif %}
+      <!-- Список групп -->
+      <div>
+        {% if not groups %}
+          <div style="background: white; padding: 3rem; border-radius: 10px; text-align: center;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">👥</div>
+            <h3>No Groups Yet</h3>
+            <p style="color: #666; margin: 1rem 0;">
+              Create your first group to manage user permissions
+            </p>
+          </div>
+        {% else %}
+          <h3 style="margin-bottom: 1.5rem;">Existing Groups ({{ groups|length }})</h3>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for group in groups %}
+              <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                  <h4 style="margin: 0; color: #2c3e50;">{{ group.name }}</h4>
+                  <span style="background: #667eea; color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
+                    {{ group.permissions.count }} permissions
+                  </span>
+                </div>
+                
+                {% if group.permissions.all %}
+                  <div>
+                    <strong>Permissions:</strong>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                      {% for permission in group.permissions.all %}
+                        <span style="background: #f8f9fa; padding: 0.3rem 0.6rem; border-radius: 15px; font-size: 0.8rem; border: 1px solid #e9ecef;">
+                          {{ permission.name }}
+                          <code style="background: #e9ecef; padding: 0.1rem 0.3rem; border-radius: 3px; margin-left: 0.3rem;">
+                            {{ permission.codename }}
+                          </code>
+                        </span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% else %}
+                  <div style="color: #999; font-style: italic;">
+                    No permissions assigned
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 {% endblock %}
