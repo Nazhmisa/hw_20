@@ -1,10 +1,8 @@
-Django==4.2.7
-django-debug-toolbar==4.2.0
-Pillow==10.0.1
-psycopg2-binary==2.9.7
-gunicorn==21.2.0
-whitenoise==6.5.0
-python-decouple==3.8
-dj-database-url==2.0.0
-django-filter==23.3
+asgiref==3.6.0
+Django==4.2
+django-debug-toolbar==4.0.0
+django-filter==22.1
 djangorestframework==3.14.0
+Pillow==9.4.0
+pytz==2022.7.1
+sqlparse==0.4.2
