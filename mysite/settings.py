@@ -12,6 +12,23 @@ from django.core.management.utils import get_random_secret_key
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ==================== БАЗОВЫЕ НАСТРОЙКИ ====================
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+# Базовые разрешенные хосты
+default_hosts = 'localhost,127.0.0.1,.onrender.com'
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=default_hosts, cast=Csv())
+
+# Автоматически добавляем Render external hostname
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# В режиме DEBUG разрешаем все хосты для удобства разработки
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+    print(f"⚠️  DEBUG MODE: ALLOWED_HOSTS set to {ALLOWED_HOSTS}")
+
 # ==================== БЕЗОПАСНОЕ ПОЛУЧЕНИЕ SECRET_KEY ====================
 def get_secret_key():
     """
@@ -46,23 +63,6 @@ def get_secret_key():
 
 SECRET_KEY = get_secret_key()
 # =========================================================================
-
-# ==================== DEBUG & ALLOWED_HOSTS ====================
-DEBUG = config('DEBUG', default=False, cast=bool)
-
-# Базовые разрешенные хосты
-default_hosts = 'localhost,127.0.0.1,.onrender.com'
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=default_hosts, cast=Csv())
-
-# Автоматически добавляем Render external hostname
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-# В режиме DEBUG разрешаем все хосты для удобства разработки
-if DEBUG:
-    ALLOWED_HOSTS = ['*']
-    print(f"⚠️  DEBUG MODE: ALLOWED_HOSTS set to {ALLOWED_HOSTS}")
 
 # Application definition
 INSTALLED_APPS = [
@@ -223,11 +223,3 @@ LOGGING = {
         'level': 'INFO' if DEBUG else 'WARNING',
     },
 }
-
-# ==================== RENDER.COM SPECIFIC ====================
-# Проверяем, что мы на Render.com
-IS_RENDER = os.environ.get('RENDER', False)
-if IS_RENDER:
-    print("🚀 Running on Render.com")
-    # Убедимся, что статика обслуживается правильно
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
