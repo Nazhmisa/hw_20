@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "mysite"
+version = "0.1.0"
+description = "My Django site"
+authors = ["Your Name <you@example.com>"]
+package-mode = false  # ← ДОБАВЬТЕ ЭТУ СТРОКУ
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Django = "^4.2"
+asgiref = "^3.7.2"
+sqlparse = "^0.4.4"
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
