@@ -17,33 +17,52 @@ def get_secret_key():
     """
     Безопасное получение SECRET_KEY:
     - Для collectstatic: временный случайный ключ
-    - Для production: только из переменных окружения (обязательно)
-    - Для разработки: из .env файла
+    - Для production: только из переменных окружения
+    - Для разработки: временный ключ с предупреждением
     """
     # Проверяем, запущен ли collectstatic
     if os.environ.get('COLLECTSTATIC') == '1':
-        # Временный ключ ТОЛЬКО для сборки статики
         temp_key = 'collectstatic-temp-key-' + get_random_secret_key()[:30]
-        print(f"⚠️  USING TEMPORARY KEY FOR COLLECTSTATIC: {temp_key[:20]}...")
         return temp_key
     
-    # Production - ТОЛЬКО из переменных окружения
+    # Получаем SECRET_KEY из переменных окружения
     secret_key = config('SECRET_KEY', default=None)
-    if secret_key is None:
+    
+    # Если в production нет SECRET_KEY - падаем с ошибкой
+    if not DEBUG and secret_key is None:
         raise ValueError(
-            "SECRET_KEY not set. "
-            "Please set SECRET_KEY environment variable in production. "
-            "For development, create .env file with SECRET_KEY."
+            "SECRET_KEY not set in production. "
+            "Please set SECRET_KEY environment variable."
         )
+    
+    # Если в разработке нет SECRET_KEY - используем временный с предупреждением
+    if DEBUG and secret_key is None:
+        temp_key = 'dev-temp-key-' + get_random_secret_key()[:30]
+        print(f"⚠️  WARNING: Using temporary SECRET_KEY for development: {temp_key[:20]}...")
+        print("⚠️  Please set SECRET_KEY in .env file for production!")
+        return temp_key
     
     return secret_key
 
 SECRET_KEY = get_secret_key()
 # =========================================================================
 
+# ==================== DEBUG & ALLOWED_HOSTS ====================
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.onrender.com', cast=Csv())
+# Базовые разрешенные хосты
+default_hosts = 'localhost,127.0.0.1,.onrender.com'
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=default_hosts, cast=Csv())
+
+# Автоматически добавляем Render external hostname
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# В режиме DEBUG разрешаем все хосты для удобства разработки
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+    print(f"⚠️  DEBUG MODE: ALLOWED_HOSTS set to {ALLOWED_HOSTS}")
 
 # Application definition
 INSTALLED_APPS = [
@@ -76,7 +95,7 @@ MIDDLEWARE = [
 
 # Debug toolbar только в DEBUG режиме
 if DEBUG:
-    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
 ROOT_URLCONF = 'mysite.urls'
 
@@ -99,7 +118,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
-# Database
+# ==================== DATABASE ====================
 DATABASE_URL = config('DATABASE_URL', default=None)
 if DATABASE_URL:
     DATABASES = {
@@ -135,12 +154,15 @@ TIME_ZONE = config('TIME_ZONE', default='UTC')
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# ==================== STATIC & MEDIA FILES ====================
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'uploads'
+
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -149,17 +171,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = reverse_lazy("myauth:about-me")
 LOGIN_URL = reverse_lazy("myauth:login")
 
-# Security settings for production
+# ==================== SECURITY SETTINGS ====================
 if not DEBUG:
+    # Production security settings
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    # Development settings
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 # REST Framework
 REST_FRAMEWORK = {
@@ -173,8 +201,33 @@ if DEBUG:
     INTERNAL_IPS = [
         "127.0.0.1",
         "localhost",
+        "0.0.0.0",
     ]
     
+    # Автоматическое определение IP для Docker
     import socket
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
     INTERNAL_IPS.extend([ip[: ip.rfind(".")] + ".1" for ip in ips])
+
+# ==================== LOGGING ====================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO' if DEBUG else 'WARNING',
+    },
+}
+
+# ==================== RENDER.COM SPECIFIC ====================
+# Проверяем, что мы на Render.com
+IS_RENDER = os.environ.get('RENDER', False)
+if IS_RENDER:
+    print("🚀 Running on Render.com")
+    # Убедимся, что статика обслуживается правильно
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
