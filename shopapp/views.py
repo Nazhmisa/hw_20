@@ -10,7 +10,6 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
-from django.views.generic import TemplateView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -24,20 +23,6 @@ from .forms import ProductForm
 from .models import Product, Order, ProductImage
 from .serializers import ProductSerializer
 
-class ShopIndexView(TemplateView):
-    template_name = 'shopapp/shop-index.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Добавьте любые данные для контекста
-        from datetime import datetime
-        context['time_running'] = datetime.now()
-        context['products'] = [
-            ('Laptop', 1999),
-            ('Desktop', 2999),
-            ('Smartphone', 999),
-        ]
-        return context
 
 
 class ProductViewSet(ModelViewSet):
