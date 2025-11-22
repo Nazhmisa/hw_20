@@ -1,35 +1,107 @@
 {% extends 'shopapp/base.html' %}
 
 {% block title %}
-  Orders list
+  Orders List
 {% endblock %}
 
 {% block body %}
-  <h1>Orders:</h1>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+      <i class="fas fa-shopping-cart me-2"></i>Orders List
+    </h1>
+    <span class="badge bg-primary fs-6">{{ object_list.count }} order(s)</span>
+  </div>
+
   {% if object_list %}
-    <div>
+    <div class="row">
       {% for order in object_list %}
-        <div>
-          <p><a href="{% url 'shopapp:order_details' pk=order.pk %}"
-          >Details #{{ order.pk }}</a></p>
-          <p>Order by {% firstof order.user.first_name order.user.username %}</p>
-          <p>Promocode: <code>{{ order.promocode }}</code></p>
-          <p>Delivery address: {{ order.delivery_address }}</p>
-          <div>
-            Product in order:
-            <ul>
-              {% for product in order.products.all %}
-                <li>{{ product.name }} for ${{ product.price }}</li>
-              {% endfor %}
+        <div class="col-lg-6 mb-4">
+          <div class="card h-100 border-{% if forloop.counter|divisibleby:2 %}primary{% else %}success{% endif %}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">
+                <i class="fas fa-receipt me-2"></i>Order #{{ order.pk }}
+              </h5>
+              <span class="badge bg-{% if order.products.count > 3 %}warning{% else %}info{% endif %}">
+                {{ order.products.count }} item(s)
+              </span>
+            </div>
+            
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-user me-2 text-muted"></i>
+                  <strong>Customer:</strong>
+                  <span class="ms-2">{% firstof order.user.first_name order.user.username %}</span>
+                </div>
+                
+                {% if order.promocode %}
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-tag me-2 text-muted"></i>
+                    <strong>Promocode:</strong>
+                    <code class="ms-2 bg-light text-dark px-2 py-1 rounded">{{ order.promocode }}</code>
+                  </div>
+                {% endif %}
+                
+                <div class="d-flex align-items-start mb-3">
+                  <i class="fas fa-map-marker-alt me-2 text-muted mt-1"></i>
+                  <div>
+                    <strong>Delivery Address:</strong>
+                    <div class="text-muted">{{ order.delivery_address|default:"Not specified" }}</div>
+                  </div>
+                </div>
+              </div>
 
-            </ul>
+              <h6 class="border-bottom pb-2">
+                <i class="fas fa-boxes me-2"></i>Products in Order:
+              </h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-borderless">
+                  <tbody>
+                    {% for product in order.products.all %}
+                      <tr>
+                        <td width="60%">
+                          <i class="fas fa-cube me-2 text-primary"></i>
+                          {{ product.name }}
+                        </td>
+                        <td class="text-end text-success">
+                          ${{ product.price }}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                    <tr class="border-top">
+                      <td><strong>Total:</strong></td>
+                      <td class="text-end text-success fw-bold">
+                        ${{ order.products.all|dictsort:"price"|join:""|default:0 }}
+                        <small class="text-muted">*</small>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div class="card-footer bg-transparent">
+              <div class="d-grid">
+                <a href="{% url 'shopapp:order_details' pk=order.pk %}" 
+                   class="btn btn-outline-primary btn-sm">
+                  <i class="fas fa-eye me-1"></i>View Order Details
+                </a>
+              </div>
+            </div>
           </div>
-
         </div>
       {% endfor %}
-
     </div>
   {% else %}
-    <h3>No orders yet</h3>
+    <div class="text-center py-5">
+      <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+      <h3>No Orders Yet</h3>
+      <p class="text-muted mb-4">When orders are placed, they will appear here.</p>
+      <a href="{% url 'shopapp:shop_index' %}" class="btn btn-primary">
+        <i class="fas fa-store me-1"></i>Continue Shopping
+      </a>
+    </div>
   {% endif %}
+</div>
 {% endblock %}
