@@ -27,7 +27,7 @@ DJANGO_DEBUG = config('DJANGO_DEBUG', default='0') == '1'
 if DJANGO_DEBUG:
     DEBUG = True
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,0.0.0.0,localhost', cast=Csv())
+ALLOWED_HOSTS = ['hw-20.onrender.com', 'localhost', '127.0.0.1', '0.0.0.0', '.onrender.com']
 
 INTERNAL_IPS = [
     "127.0.0.1",
