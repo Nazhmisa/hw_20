@@ -1,21 +1,16 @@
 FROM python:3.11-slim
 
+ENV POETRY_VIRTUALENVS_CREATE=false
+
 WORKDIR /app
 
-# Установка Poetry
-RUN pip install poetry
-
-# Отключаем создание виртуального окружения внутри Docker
-RUN poetry config virtualenvs.create false
-
-# Копируем файлы зависимостей
 COPY pyproject.toml poetry.lock* /app/
 
-# Устанавливаем зависимости
-RUN poetry install --no-dev --no-interaction --no-ansi
+RUN pip install --no-cache-dir poetry && \
+    poetry install --no-dev --no-interaction --no-ansi
 
-# Копируем код приложения
-COPY . .
+COPY . /app/
 
-# Команда запуска
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+RUN python manage.py collectstatic --noinput
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000", "--insecure"]
