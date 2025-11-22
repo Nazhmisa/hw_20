@@ -17,3 +17,11 @@ docker-compose.override.yml
 # IDE
 .vscode/
 .idea/
+
+# .gitignore
+.env
+*.pyc
+__pycache__/
+db.sqlite3
+uploads/
+staticfiles/

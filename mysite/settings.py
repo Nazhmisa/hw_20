@@ -7,12 +7,40 @@ from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
 from django.urls import reverse_lazy  
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Security settings - НЕТ дефолтных значений для секретов!
-SECRET_KEY = config('SECRET_KEY')  # Обязательно через переменные окружения
+# ==================== БЕЗОПАСНОЕ ПОЛУЧЕНИЕ SECRET_KEY ====================
+def get_secret_key():
+    """
+    Безопасное получение SECRET_KEY:
+    - Для collectstatic: временный случайный ключ
+    - Для production: только из переменных окружения (обязательно)
+    - Для разработки: из .env файла
+    """
+    # Проверяем, запущен ли collectstatic
+    if os.environ.get('COLLECTSTATIC') == '1':
+        # Временный ключ ТОЛЬКО для сборки статики
+        temp_key = 'collectstatic-temp-key-' + get_random_secret_key()[:30]
+        print(f"⚠️  USING TEMPORARY KEY FOR COLLECTSTATIC: {temp_key[:20]}...")
+        return temp_key
+    
+    # Production - ТОЛЬКО из переменных окружения
+    secret_key = config('SECRET_KEY', default=None)
+    if secret_key is None:
+        raise ValueError(
+            "SECRET_KEY not set. "
+            "Please set SECRET_KEY environment variable in production. "
+            "For development, create .env file with SECRET_KEY."
+        )
+    
+    return secret_key
+
+SECRET_KEY = get_secret_key()
+# =========================================================================
+
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.onrender.com', cast=Csv())
@@ -64,7 +92,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-            'debug': DEBUG,  # Важно для безопасности
+            'debug': DEBUG,
         },
     },
 ]
@@ -125,10 +153,10 @@ LOGIN_URL = reverse_lazy("myauth:login")
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_SSL_REDIRECT = True  # Всегда True в production
+    SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
