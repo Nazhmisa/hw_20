@@ -1,7 +1,6 @@
 
 FROM python:3.9-slim as builder
 
-
 ENV PYTHONUNBUFFERED=1 \
     POETRY_VIRTUALENVS_CREATE=false \
     POETRY_VIRTUALENVS_IN_PROJECT=false \
@@ -15,13 +14,11 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-
 RUN pip install --no-cache-dir poetry
 
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml ./
 
-RUN poetry install --no-dev --no-root
-
+RUN poetry install --no-dev --no-root --no-cache
 
 FROM python:3.9-slim
 
@@ -36,14 +33,13 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-
 COPY . .
-
 
 RUN mkdir -p staticfiles uploads
 
-RUN python manage.py collectstatic --noinput
+RUN chmod +x manage.py
 
+RUN python manage.py collectstatic --noinput
 
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
